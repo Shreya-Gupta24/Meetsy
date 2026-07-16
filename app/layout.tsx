@@ -5,6 +5,7 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import HeaderWrapper from "@/components/layout/HeaderWrapper";
+import Footer from "@/components/layout/Footer";
 
 const outfitFont = Outfit({
   subsets: ["latin"],
@@ -30,6 +31,7 @@ export default function RootLayout({
           {/* <QueryProvider> */}
             <HeaderWrapper />
             {children}
+            <Footer />
           {/* </QueryProvider> */}
         </body>
       </html>
