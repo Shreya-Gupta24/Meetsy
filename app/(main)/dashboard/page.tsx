@@ -1,25 +1,31 @@
 "use client";
 import { useQuery } from "@tanstack/react-query";
 import { useUser } from "@clerk/nextjs";
+import { client } from "@/lib/api-client";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { MessageCircleIcon, UserIcon } from "lucide-react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import StatsCard from "@/components/dashboard/StatsCard";
 
 export default function DashboardPage(){
-    const user= useUser()
-    const {data, isLoading, error}= useQuery<{id: number; name: string}[]>({
+    const user= useUser();
+    const {
+    data: userCommunities,
+    isLoading: isLoadingUserCommunities,
+    error: errorUserCommunities
+    } = useQuery<any>({
         queryKey: ["communities"],
-        // queryFn: async () => {
-        //     const res=await fetch("/api/communities");
-        //     return res.json();
-        //}
         queryFn: async() => {
-            return new Promise<{id: number; name: string}[]>((resolve) => {
-                setTimeout(() => {
-                    resolve([{id: 1, name: "Community 1"}])
-                },1000);
-            })
+            const res= await client.api.communities.$get();
+            return res.json();
         }
     })
-    if(isLoading) return <div>Loading...</div>;
-    if(error) return <div>Error: {error.message}</div>;
+    if(isLoadingUserCommunities) return <div>Loading...</div>;
+    if(errorUserCommunities) return <div>Error: {errorUserCommunities.message}</div>;
+
+    const pendingMatches= 6;
+
     return (
         <div className="page-wrapper">
             <div>
@@ -28,9 +34,96 @@ export default function DashboardPage(){
                     Welcome back, {user?.user?.firstName || "User"}!
                 </p>
             </div>
-            {data && data?.map((community: {id: number; name: string}) => (
-                <div key={community.id}>{community.name}</div>
-            ))}
+
+            <Card className="border border-primary">
+                <CardHeader>
+                    <CardTitle>
+                        🎉 You have {pendingMatches} new{" "}
+                        {/* {pendingMatches === 1 ? "match" : "matches"}! */}
+                    </CardTitle>
+                    <CardDescription>
+                        Review and accept your matches to start chatting
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Link href="/chat">
+                        <Button>Review Matches</Button>
+                    </Link>
+                </CardContent>
+            </Card>
+
+            { /*Stats*/}
+            <div className="grid gap-4 md:grid-cols-4">
+                <StatsCard
+                    title= "Your Communities"
+                    value= {userCommunities?.length || 0} 
+                />
+                <StatsCard
+                    title= "Learning Goals"
+                    value= {6} 
+                />
+                <StatsCard
+                    title= "Active Matches"
+                    value= {6} 
+                />
+                <StatsCard
+                    title= "Pending Matches"
+                    value= {pendingMatches || 0} 
+                />
+            </div>
+
+            {/* recent Chats */}
+            <div className="grid gap-4 lg:grid-cols-2">
+                <Card>
+                    <CardHeader>
+                        <div className="flex items-center justify-between">
+                            <CardTitle className="flex items-center">
+                            <MessageCircleIcon className= "size-4 mr-2 text-primary" />
+                            Recent Chats
+                        </CardTitle>
+                        <Link href="/chat">
+                            <Button variant= "outline" size= "sm">
+                                View All
+                            </Button>
+                        </Link>
+                        </div>
+                        <CardDescription>Communities you&apos;re part of</CardDescription>
+                    </CardHeader>
+                    <CardContent></CardContent>
+                </Card>
+
+            {/* Communities */}
+                <Card>
+                    <CardHeader>
+                        <div className="flex items-center justify-between">
+                            <CardTitle className="flex items-center">
+                            <UserIcon className= "size-4 mr-2 text-primary" />
+                            Communities
+                        </CardTitle>
+                        <Link href="/communities">
+                            <Button variant= "outline" size= "sm">
+                                Manage
+                            </Button>
+                        </Link>
+                        </div>
+                        <CardDescription>Communities you&apos;re part of</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-3">
+                            {userCommunities?.map((community: any) => (
+                                <Card className="shadow-none" key={community.id}>
+                                    <Link href={`/communities/${community.communityId}`}>
+                                        <CardHeader>
+                                            <CardTitle className= "text-sm">{community.community.name}</CardTitle>
+                                            <CardDescription className="text-sm">{community.community.description}</CardDescription>
+                                        </CardHeader>
+                                    </Link>
+                                </Card>
+                            ))}
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
         </div>
     )
 }
