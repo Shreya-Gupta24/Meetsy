@@ -1,8 +1,8 @@
 import {Hono} from "hono";
 import { db } from "@/db/index";
-import { communities, communityMembers } from "@/db/schema";
+import { communities, communityMembers, learningGoals } from "@/db/schema";
 import { HTTPException } from "hono/http-exception";
-import { eq } from "drizzle-orm"
+import { eq, and } from "drizzle-orm"
 import { getOrCreateUserByClerkId } from "@/lib/user-utils";
 
 type Variables = {
@@ -51,17 +51,33 @@ const communitiesApp= new Hono<{Variables : Variables}>()
     .post("/:communityId/join", async(c)=> {
     const {communityId}= c.req.param();
     const userId= c.get("userId");
-    const community= await db.select().from(communities).where(eq(communities.id, communityId));
-    //check if community exists
-    if(!community){
-        throw new HTTPException(404, {message: "Community not found"});
+    const user= await getOrCreateUserByClerkId(userId);
+    if(!user){
+        throw new HTTPException(404, {message: "User not found"});
+    }
+    const [existing]= await db.select().from(communityMembers).where(and(eq(communityMembers.userId, user.id), eq(communityMembers.communityId, communityId)));
+    if(existing){
+        throw new HTTPException(400, {message: "User already joined the community"});
     }
     //inserting the user in the community by adding values to communityMembers table
     await db.insert(communityMembers).values({
-        userId: userId,
+        userId: user.id,
         communityId: communityId,
     })
-    return c.json({message: "Joined community successfully"});
+    return c.json({message: "Joined community successfully",
+        communityId: communityId
+    });
 })
+//get the learning goals of the communitis of the user
+    .get("/:communityId/goals", async(c) => {
+        const userId= c.get("userId");
+        const {communityId}= c.req.param();
+        const user= await getOrCreateUserByClerkId(userId);
+        if(!user){
+            throw new HTTPException(404, {message: "User not found"});
+        }
+        const goals= await db.select().from(learningGoals).where(and(eq(learningGoals.userId, user.id), eq(learningGoals.communityId, communityId)));
+        return c.json(goals);
+    })
 
 export {communitiesApp};
