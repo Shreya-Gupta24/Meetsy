@@ -68,16 +68,4 @@ const communitiesApp= new Hono<{Variables : Variables}>()
         communityId: communityId
     });
 })
-//get the learning goals of the communitis of the user
-    .get("/:communityId/goals", async(c) => {
-        const userId= c.get("userId");
-        const {communityId}= c.req.param();
-        const user= await getOrCreateUserByClerkId(userId);
-        if(!user){
-            throw new HTTPException(404, {message: "User not found"});
-        }
-        const goals= await db.select().from(learningGoals).where(and(eq(learningGoals.userId, user.id), eq(learningGoals.communityId, communityId)));
-        return c.json(goals);
-    })
-
 export {communitiesApp};

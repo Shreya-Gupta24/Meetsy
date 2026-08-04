@@ -6,6 +6,7 @@ import {handle} from "hono/vercel";
 import { auth } from "@clerk/nextjs/server";
 import { eq } from "drizzle-orm";
 import {communitiesApp} from "@/app/server/communities";
+import {learningGoalsApp} from "@/app/server/learning-goals";
 
 type Variables= {
     userId: string;
@@ -55,8 +56,11 @@ app.use("/*", async(c, next)=> {
 )
 
 
-//communities
-const routes= app.route("/communities", communitiesApp);
+
+const routes= app
+    .route("/communities", communitiesApp)
+    .route("/communities",learningGoalsApp)
+
 export type AppType= typeof routes;
 
 export const GET= handle(app);

@@ -3,8 +3,9 @@ import { Button } from '@/components/ui/button';
 import React, { useState, useEffect, startTransition } from 'react';
 import { useCommunities, useCommunityGoals } from '@/hooks/useCommunities';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { BotIcon } from 'lucide-react';
+import { BotIcon, PlusIcon } from 'lucide-react';
 import AIMatching from '@/components/communities/AIMatching';
+import AddLearningGoal from '@/components/communities/AddLearningGoal';
 
 const CommunitiesPage = () => {
     const [activeTab, setActiveTab] = useState<"goals" | "matches">("goals");
@@ -78,12 +79,12 @@ const CommunitiesPage = () => {
                         </Button>
                     </div>
                     <CardTitle>
-                        {activeTab === "goals" ? "Learning Goals" : "Find Partners with AI"}
+                        {activeTab === "goals" ? "Learning Goals" : "Potential Learning Partners"}
                     </CardTitle>
                     <CardDescription>
                         {activeTab === "goals"
                             ? `${communityGoals?.length ?? 0} ${communityGoals?.length === 1 ? "goal" : "goals"} in selected community`
-                            : "Find potential learning partners with AI"}
+                            : "Members with similar learning goals"}
                     </CardDescription>
                 </CardHeader>
 
@@ -103,6 +104,7 @@ const CommunitiesPage = () => {
                                     </CardHeader>
                                 </Card>
                             ))}
+                            <AddLearningGoal selectedCommunityId={selectedCommunity!} />
                         </div>
                     ) : (
                         <AIMatching totalGoals={communityGoals?.length ?? 0} />
