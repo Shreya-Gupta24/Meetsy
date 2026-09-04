@@ -1,7 +1,8 @@
 import { db } from "@/db";
-import { conversations, messages } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { conversations, matches, messages } from "@/db/schema";
+import { eq, or } from "drizzle-orm";
 import { Hono } from "hono";
+import { HTTPException } from "hono/http-exception";
 import { authMiddleware } from "./middleware/auth-middleware";
 import { generateAISummaries, getLatestConversationSummary } from "@/lib/ai";
 
@@ -79,5 +80,45 @@ const conversationsApp = new Hono<{ Variables: Variables }>()
     const conversationId = c.req.param("conversationId");
     const summary = await getLatestConversationSummary(conversationId);
     return c.json(summary);
+  })
+  // DELETE /:conversationId/messages — clear ALL messages in a conversation
+  .delete("/:conversationId/messages", async (c) => {
+    const user = c.get("user");
+    const conversationId = c.req.param("conversationId");
+
+    // Verify caller is a participant
+    const [conv] = await db
+      .select()
+      .from(conversations)
+      .where(eq(conversations.id, conversationId));
+    if (!conv) throw new HTTPException(404, { message: "Conversation not found" });
+
+    const [match] = await db
+      .select()
+      .from(matches)
+      .where(eq(matches.id, conv.matchId));
+    if (!match || (match.user1Id !== user.id && match.user2Id !== user.id)) {
+      throw new HTTPException(403, { message: "Not authorized" });
+    }
+
+    await db.delete(messages).where(eq(messages.conversationId, conversationId));
+    return c.json({ message: "Chat cleared" });
+  })
+  // DELETE /:conversationId/messages/:messageId — delete a single message (sender only)
+  .delete("/:conversationId/messages/:messageId", async (c) => {
+    const user = c.get("user");
+    const { conversationId, messageId } = c.req.param();
+
+    const [msg] = await db
+      .select()
+      .from(messages)
+      .where(eq(messages.id, messageId));
+
+    if (!msg) throw new HTTPException(404, { message: "Message not found" });
+    if (msg.senderId !== user.id) throw new HTTPException(403, { message: "Not your message" });
+
+    await db.delete(messages).where(eq(messages.id, messageId));
+    return c.json({ message: "Message deleted" });
   });
-export { conversationsApp };
+
+export { conversationsApp };

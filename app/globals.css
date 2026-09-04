@@ -490,4 +490,63 @@
   .hero-gradient-overlay-animated {
     @apply absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent;
   }
+
+  /* ── Mobile Bottom Navigation ── */
+  .mobile-nav {
+    @apply fixed bottom-0 left-0 right-0 z-50
+           items-center justify-around
+           border-t border-border
+           bg-background/90 backdrop-blur-lg
+           supports-backdrop-filter:bg-background/75
+           px-2 pt-2;
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+    box-shadow: 0 -4px 24px -4px hsl(0 0% 0% / 0.08);
+  }
+
+  .mobile-nav-item {
+    @apply flex flex-col items-center gap-0.5
+           min-w-0 flex-1 py-1 px-2 rounded-xl
+           text-muted-foreground
+           transition-all duration-200 ease-out
+           select-none;
+  }
+
+  .mobile-nav-item:active {
+    @apply scale-95;
+  }
+
+  .mobile-nav-item--active {
+    @apply text-primary;
+  }
+
+  .mobile-nav-icon-wrap {
+    @apply relative flex items-center justify-center
+           w-10 h-7 rounded-xl transition-all duration-200;
+  }
+
+  .mobile-nav-item--active .mobile-nav-icon-wrap {
+    @apply bg-primary/12;
+  }
+
+  .mobile-nav-icon {
+    @apply size-5 transition-all duration-200;
+  }
+
+  .mobile-nav-icon--active {
+    @apply stroke-[2.25];
+  }
+
+  .mobile-nav-dot {
+    @apply absolute -bottom-1 left-1/2 -translate-x-1/2
+           w-1 h-1 rounded-full bg-primary
+           opacity-100 scale-100 transition-all duration-200;
+  }
+
+  .mobile-nav-label {
+    @apply text-[10px] font-medium leading-none tracking-wide transition-all duration-200;
+  }
+
+  .mobile-nav-item--active .mobile-nav-label {
+    @apply font-semibold;
+  }
 }

@@ -221,4 +221,39 @@ export const matchesApp= new Hono<{Variables: Variables}>()
             imageUrl: otherUser.imageUrl || null,
         },
         });
+    })
+    .delete("/:matchId", async (c) => {
+        const user = c.get("user");
+        const matchId = c.req.param("matchId");
+
+        const [match] = await db
+            .select()
+            .from(matches)
+            .where(eq(matches.id, matchId));
+
+        if (!match) {
+            throw new HTTPException(404, { message: "Match not found" });
+        }
+
+        // Only participants can remove the match
+        if (match.user1Id !== user.id && match.user2Id !== user.id) {
+            throw new HTTPException(403, { message: "Not authorized" });
+        }
+
+        // Delete associated conversation + messages first
+        const [conversation] = await db
+            .select()
+            .from(conversations)
+            .where(eq(conversations.matchId, matchId));
+
+        if (conversation) {
+            const { messages: messagesTable, conversationSummaries } = await import("@/db/schema");
+            await db.delete(messagesTable).where(eq(messagesTable.conversationId, conversation.id));
+            await db.delete(conversationSummaries).where(eq(conversationSummaries.conversationId, conversation.id));
+            await db.delete(conversations).where(eq(conversations.id, conversation.id));
+        }
+
+        await db.delete(matches).where(eq(matches.id, matchId));
+
+        return c.json({ message: "Match removed" });
     });

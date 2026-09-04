@@ -63,3 +63,23 @@ export const useAcceptMatch = () => {
     },
   });
 };
+
+export const useRemoveMatch = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (matchId: string) => {
+      const res = await fetch(`/api/matches/${matchId}`, { method: "DELETE" });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error((err as any).message ?? "Failed to remove match");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["matches"] });
+    },
+    onError: (error) => {
+      console.error("Error removing match", error);
+    },
+  });
+};

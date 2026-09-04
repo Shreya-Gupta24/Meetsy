@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import HeaderWrapper from "@/components/layout/HeaderWrapper";
 import Footer from "@/components/layout/Footer";
+import MobileNav from "@/components/layout/MobileNav";
 import QueryProvider from "@/components/providers/QueryProvider";
 import { Toaster } from "@/components/ui/sonner";
 
@@ -29,11 +30,12 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="en">
-        <body className={`${outfitFont.className} antialiased`}>
+        <body className={`${outfitFont.className} antialiased pb-[4.5rem] md:pb-0`}>
           <QueryProvider>
             <HeaderWrapper />
             {children}
             <Footer />
+            <MobileNav />
           </QueryProvider>
           <Toaster position="top-right" />
         </body>

@@ -3,37 +3,40 @@ import { useAuth } from '@clerk/nextjs'
 import { client } from '@/lib/api-client'
 
 
-export const useCommunities = () => {
+export const useCommunities = (search?: string) => {
     const { isLoaded, isSignedIn } = useAuth()
 
     return useQuery<any>({
-        queryKey: ["communities"],
+        queryKey: ["communities", search ?? ""],
         queryFn: async () => {
-            const res = await client.api.communities.$get()
+            const url = search
+                ? `/api/communities?search=${encodeURIComponent(search)}`
+                : "/api/communities"
+            const res = await fetch(url)
             if (!res.ok) {
                 throw new Error("Failed to fetch user communities")
             }
             return res.json()
         },
-        // ✅ Only execute when Clerk is completely loaded and user is signed in
-        enabled: isLoaded && isSignedIn, 
+        enabled: isLoaded && isSignedIn,
     })
 }
 
-export const useAllCommunities = () => {
+export const useAllCommunities = (search?: string) => {
     const { isLoaded, isSignedIn } = useAuth()
 
     return useQuery<any>({
-        // ✅ Unique query key so it doesn't clash with user joined communities
-        queryKey: ["communities", "all"], 
+        queryKey: ["communities", "all", search ?? ""],
         queryFn: async () => {
-            const res = await client.api.communities.all.$get()
+            const url = search
+                ? `/api/communities/all?search=${encodeURIComponent(search)}`
+                : "/api/communities/all"
+            const res = await fetch(url)
             if (!res.ok) {
                 throw new Error("Failed to fetch communities")
             }
             return res.json()
         },
-        // ✅ Only execute when Clerk is completely loaded and user is signed in
         enabled: isLoaded && isSignedIn,
     })
 }
@@ -52,7 +55,6 @@ export const useCommunityGoals = (communityId: string | null) => {
             }
             return res.json()
         },
-        // ✅ Only execute when Clerk is ready AND a community ID is selected
         enabled: isLoaded && isSignedIn && !!communityId,
     })
 }
@@ -74,6 +76,101 @@ export const useJoinCommunity = () => {
         },
         onError: (error) => {
             console.error("Error joining community", error);
+        },
+    });
+};
+
+export const useCreateCommunity = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async (data: {
+            name: string;
+            description?: string;
+            goals?: { title: string; description?: string }[];
+        }) => {
+            // 1. Create the community
+            const res = await fetch("/api/communities", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name: data.name, description: data.description }),
+            });
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                throw new Error((err as any).message ?? "Failed to create community");
+            }
+            const community = await res.json();
+
+            // 2. Create each goal sequentially under the new community
+            if (data.goals && data.goals.length > 0) {
+                for (const goal of data.goals) {
+                    await fetch("/api/communities/goals", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            communityId: community.id,
+                            title: goal.title,
+                            description: goal.description ?? "",
+                            tags: [],
+                        }),
+                    });
+                }
+            }
+
+            return community;
+        },
+        onSuccess: (community) => {
+            queryClient.invalidateQueries({ queryKey: ["communities"] });
+            queryClient.invalidateQueries({ queryKey: ["communityGoals", community.id] });
+        },
+        onError: (error) => {
+            console.error("Error creating community", error);
+        },
+    });
+};
+
+export const useLeaveCommunity = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async (communityId: string) => {
+            // Uses the dedicated /leave endpoint — always just removes membership
+            const res = await fetch(`/api/communities/${communityId}/leave`, {
+                method: "POST",
+            });
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                throw new Error((err as any).message ?? "Failed to leave community");
+            }
+            return res.json();
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["communities"] });
+        },
+        onError: (error) => {
+            console.error("Error leaving community", error);
+        },
+    });
+};
+
+export const useDeleteCommunity = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async (communityId: string) => {
+            // Uses DELETE — only works if caller is creator, deletes everything
+            const res = await fetch(`/api/communities/${communityId}`, {
+                method: "DELETE",
+            });
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                throw new Error((err as any).message ?? "Failed to delete community");
+            }
+            return res.json();
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["communities"] });
+            queryClient.invalidateQueries({ queryKey: ["communities", "all"] });
+        },
+        onError: (error) => {
+            console.error("Error deleting community", error);
         },
     });
 };

@@ -78,7 +78,23 @@ const learningGoalsApp = new Hono<{ Variables: Variables }>()
       .from(learningGoals)
       .where(eq(learningGoals.userId, user.id));
     return c.json(goals);
-  });
+  })
+  // DELETE /goals/:goalId — delete a specific learning goal (owner only)
+  .delete("/goals/:goalId", async (c) => {
+    const user = c.get("user");
+    const goalId = c.req.param("goalId");
 
+    const [goal] = await db
+      .select()
+      .from(learningGoals)
+      .where(and(eq(learningGoals.id, goalId), eq(learningGoals.userId, user.id)));
+
+    if (!goal) {
+      throw new HTTPException(404, { message: "Goal not found or not yours" });
+    }
+
+    await db.delete(learningGoals).where(eq(learningGoals.id, goalId));
+    return c.json({ message: "Goal deleted" });
+  });
 
 export { learningGoalsApp };
