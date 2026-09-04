@@ -3,9 +3,10 @@ import { Button } from '@/components/ui/button';
 import React, { useState, useEffect, startTransition } from 'react';
 import { useCommunities, useCommunityGoals } from '@/hooks/useCommunities';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { BotIcon, PlusIcon } from 'lucide-react';
+import { BotIcon, PlusIcon, LockIcon } from 'lucide-react';
 import AIMatching from '@/components/communities/AIMatching';
 import AddLearningGoal from '@/components/communities/AddLearningGoal';
+import { useCurrentUser } from '@/hooks/useUser';
 
 const CommunitiesPage = () => {
     const [activeTab, setActiveTab] = useState<"goals" | "matches">("goals");
@@ -18,14 +19,17 @@ const CommunitiesPage = () => {
         error: errorCommunities
     } = useCommunities();
 
-    // ✅ HOOK 2: Fetch goals (MUST be placed before any early returns!)
+    // ✅ HOOK 2: Fetch goals
     const {
         data: communityGoals,
         isLoading: isLoadingCommunityGoals,
         error: errorCommunityGoals
     } = useCommunityGoals(selectedCommunity);
 
-    // ✅ HOOK 3: Auto-select the first community
+    // ✅ HOOK 3: Fetch current user (placed before any early returns)
+    const { data: user } = useCurrentUser();
+
+    // ✅ HOOK 4: Auto-select the first community
     useEffect(() => {
         if (communities && communities.length > 0 && !selectedCommunity) {
             startTransition(() => {
@@ -38,12 +42,21 @@ const CommunitiesPage = () => {
     if (isLoadingCommunities) return <div className="p-6">Loading communities...</div>;
     if (errorCommunities) return <div className="p-6 text-destructive">Error: {errorCommunities.message}</div>;
 
+    const numberOfCommunities = communities?.length || 0;
+    const isPro = user?.isPro;
+    const showLockIcon = numberOfCommunities >= 3 && !isPro;
+
     return (
         <div className="grid gap-6 lg:grid-cols-3">
             {/* Left Sidebar: Communities List */}
             <Card className="lg:col-span-1">
                 <CardHeader>
-                    <CardTitle>Communities</CardTitle>
+                    <CardTitle className="flex items-center gap-2">
+                        {showLockIcon && (
+                            <LockIcon className="size-4 text-muted-foreground" />
+                        )}{" "}
+                        Communities
+                    </CardTitle>
                     <CardDescription>{communities?.length || 0} joined</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-2">
@@ -104,10 +117,10 @@ const CommunitiesPage = () => {
                                     </CardHeader>
                                 </Card>
                             ))}
-                            <AddLearningGoal selectedCommunityId={selectedCommunity!} />
+                            <AddLearningGoal selectedCommunityId={selectedCommunity!} showLockIcon={showLockIcon} />
                         </div>
                     ) : (
-                        <AIMatching totalGoals={communityGoals?.length ?? 0} selectedCommunityId={selectedCommunity!} />
+                        <AIMatching totalGoals={communityGoals?.length ?? 0} selectedCommunityId={selectedCommunity!} showLockIcon={showLockIcon} />
                     )}
                 </CardContent>
             </Card>
