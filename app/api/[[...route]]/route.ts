@@ -7,6 +7,9 @@ import { auth } from "@clerk/nextjs/server";
 import { eq } from "drizzle-orm";
 import {communitiesApp} from "@/app/server/communities";
 import {learningGoalsApp} from "@/app/server/learning-goals";
+import {matchesApp} from "@/app/server/matches";
+import {conversationsApp} from "@/app/server/conversations";
+import {userApp} from "@/app/server/users";
 
 type Variables= {
     userId: string;
@@ -60,6 +63,9 @@ app.use("/*", async(c, next)=> {
 const routes= app
     .route("/communities", communitiesApp)
     .route("/communities",learningGoalsApp)
+    .route("/matches", matchesApp)
+    .route("/conversations", conversationsApp)
+    .route("/user", userApp)
 
 export type AppType= typeof routes;
 

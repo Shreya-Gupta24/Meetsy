@@ -1,7 +1,19 @@
 import React from 'react'
 import { Button } from '../ui/button'
+import { useAiPartners } from '@/hooks/useAIPartners'
+import { toast } from 'sonner'
 
-const AIMatching = ({totalGoals}: {totalGoals: number}) => {
+const AIMatching = ({totalGoals, selectedCommunityId}: {totalGoals: number, selectedCommunityId: string}) => {
+    const aiPartnerMutation= useAiPartners();
+    const handleFindAIPartners = () => {
+        try{
+            aiPartnerMutation.mutate(selectedCommunityId);
+            toast.success("AI partners found successfully!");
+        }catch(error){
+            console.error("error findinf ai partners", error)
+            toast.error("Error finding ai partners");
+        }
+    }
   return (
     <div className="text-center py-8">
         <div className="mb-4">
@@ -10,7 +22,7 @@ const AIMatching = ({totalGoals}: {totalGoals: number}) => {
                 Our AI will analyze your learning goals and atomatically match you with the most compatible learning partners in this community.
             </p>
         </div>
-        <Button size="lg" disabled={totalGoals === 0}>🤖 Find Partners with AI</Button>
+        <Button size="lg" disabled={totalGoals === 0} onClick={handleFindAIPartners}>🤖 Find Partners with AI</Button>
         {totalGoals > 0 && (
             <p className="mt4 text-sm text-muted-foreground">You have {totalGoals} learning goals set</p>
         )}

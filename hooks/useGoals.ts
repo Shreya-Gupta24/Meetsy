@@ -15,9 +15,10 @@ export const useCreateLearningGoal = () => {
         description: string;
         tags: string[] | undefined;
         }) => {
-        const res = await client.api.communities[":communityId"].goals.$post({
+        const res = await client.api.communities.goals.$post({
             param: { communityId },
             json: {
+                communityId,
                 title,
                 description,
                 tags: tags || [],

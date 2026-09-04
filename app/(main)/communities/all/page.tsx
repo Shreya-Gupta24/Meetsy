@@ -5,6 +5,7 @@ import { ArrowLeftIcon, CheckIcon } from 'lucide-react'
 import Link from 'next/link'
 import { useAllCommunities, useCommunities, useJoinCommunity } from '@/hooks/useCommunities'
 import React from 'react'
+import { toast } from 'sonner'
 
 export default function AllCommunitiesPage() {
     const {
@@ -28,6 +29,7 @@ export default function AllCommunitiesPage() {
     const handleJoinCommunity = async (communityId: string) => {
         console.log("Joining community:", communityId);
         await joinCommunityMutation.mutateAsync(communityId);
+        toast.success("Successfully joined the community!");
     }
 
     if(isLoadingAllCommunities) return <div>Loading...</div>;
