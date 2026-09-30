@@ -13,7 +13,7 @@
 
 **Meetsy** connects learners with compatible study partners using AI-driven matching. Create or join learning communities, set personalized learning goals, and let our AI engine analyze goal compatibility to match you with the ideal learning partner — then chat in real time with AI-generated conversation summaries.
 
-[🌐 Live Demo](#) · [📖 Documentation](#features) · [🐛 Report Bug](https://github.com/Shreya-Gupta24/Meetsy/issues)
+[🌐 Live Demo](https://meetsy-app.vercel.app/) ·  [🐛 Report Bug](https://github.com/Shreya-Gupta24/Meetsy/issues)
 
 </div>
 
@@ -31,9 +31,6 @@
 - [Getting Started](#getting-started)
 - [Environment Variables](#environment-variables)
 - [Scripts](#scripts)
-- [Roadmap](#roadmap)
-- [Contributing](#contributing)
-- [License](#license)
 
 ---
 
@@ -427,42 +424,6 @@ GROQ_API_KEY=gsk_...
 
 ---
 
-## 🗺️ Roadmap
-
-- [x] Community creation and management
-- [x] Learning goal creation with tags
-- [x] AI-powered partner matching (Groq LLM)
-- [x] Real-time messaging
-- [x] AI conversation summaries
-- [x] Ranked search (name + tags)
-- [x] Pro subscription tier (Clerk billing)
-- [x] Dark mode support
-- [x] Mobile-responsive design
-- [ ] WebSocket-based real-time messaging
-- [ ] Push notifications for new matches
-- [ ] Community analytics dashboard
-- [ ] File sharing in conversations
-- [ ] Video call integration
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome! Please follow these steps:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
----
-
-## 📄 License
-
-Distributed under the MIT License. See `LICENSE` for more information.
-
----
 
 <div align="center">
 
